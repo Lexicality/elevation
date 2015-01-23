@@ -8,10 +8,10 @@
     currentFloor(): number;
     // Gets or sets the going up indicator, which will affect passenger behaviour when stopping at floors.
     goingUpIndicator(): boolean;
-    goingUpIndicator(enabled: boolean);
+    goingUpIndicator(enabled: boolean): void;
     // Gets or sets the going down indicator, which will affect passenger behaviour when stopping at floors.
     goingDownIndicator(): boolean;
-    goingDownIndicator(enabled: boolean);
+    goingDownIndicator(enabled: boolean): void;
     // Gets the load factor of the elevator. 0 means empty, 1 means full. Varies with passenger weights, which vary - not an exact measure.
     loadFactor(): number;
     // The current destination queue, meaning the floors the elevator is scheduled to go to. Can be modified and emptied if desired. Note that you need to call checkDestinationQueue() for the change to take effect immediately.
@@ -38,6 +38,9 @@ module Elevation {
         Down,
     }
     class Elevator {
+        constructor(private elevator: IElevator, floors: IFloor[]) {
+        }
+        private
         private moving: boolean;
         getDirection(): Direction {
             if (!this.moving)

@@ -11,7 +11,8 @@ var Elevation;
     })(Elevation.Direction || (Elevation.Direction = {}));
     var Direction = Elevation.Direction;
     var Elevator = (function () {
-        function Elevator() {
+        function Elevator(elevator, floors) {
+            this.elevator = elevator;
         }
         Elevator.prototype.getDirection = function () {
             if (!this.moving)
