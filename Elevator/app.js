@@ -47,7 +47,7 @@ var Elevation;
             });
         };
         ElevatorControl.prototype.update = function (dt, elevators, floors) {
-            // We normally don't need to do anything here
+            // We normally don't need to do anything heree
         };
         return ElevatorControl;
     })();

@@ -67,7 +67,7 @@ module Elevation {
             });
         }
         update(dt: number, elevators: IElevator[], floors: IFloor[]) {
-            // We normally don't need to do anything here
+            // We normally don't need to do anything heree
         }
     }
 }
