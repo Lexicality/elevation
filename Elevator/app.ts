@@ -37,34 +37,76 @@ module Elevation {
         Resting,
         Down,
     }
+    function todir(direction: string): Direction {
+        return Direction.Resting;
+    }
     class Elevator {
+        private restingFloor: number;
+        private idle: boolean;
+
+        public direction: Direction;
+        // The last floor the elevator went past. If stationary, the floor we're at.
+        public floor: number;
+
+
         constructor(private elevator: IElevator, floors: IFloor[]) {
+            // This assumes floor[0] = 0 and floor[n] = n
+            var nfloors = floors.length;
+            this.restingFloor = Math.floor(nfloors / 2);
+
+            elevator.on("idle", this.onIdle.bind(this));
+            elevator.on("floor_button_pressed", this.onFloorRequest.bind(this));
+            elevator.on("passing_floor", this.onPassFloor.bind(this));
+            elevator.on("stopped_at_floor", this.onArrive.bind(this));
         }
-        private
-        private moving: boolean;
-        getDirection(): Direction {
-            if (!this.moving)
-                return Direction.Resting;
+        goToFloor(floor: number, override: boolean = false): void {
+            if (this.idle)
+                override = true;
+            if (!override && this.elevator.destinationQueue.indexOf(floor) !== -1)
+                return;
             // TODO
-            return Direction.Resting;
+            console.log("Going to %d%s", floor, override ? ' directly' : '');
+            this.elevator.goToFloor(floor, override);
+            this.idle = false;
+        }
+
+        private onIdle() {
+            console.info("Idle!");
+            var e = this.elevator
+            //e.goingDownIndicator(false);
+            //e.goingUpIndicator(false);
+            if (!this.idle) {
+                this.goToFloor(this.restingFloor);
+                this.idle = true;
+            }
+        }
+        private onFloorRequest(floor: number) {
+            console.log("Floor req for %d", floor);
+            // TODO
+            this.goToFloor(floor);
+        }
+        private onPassFloor(floor: number, _direction: string) {
+            console.log("Passing floor %d going %s", floor, _direction);
+            var direction = todir(_direction);
+            this.floor = floor;
+            // TODO
+        }
+        private onArrive(floor: number) {
+            console.log("Arrived at floor %s", floor);
+            this.floor = floor;
+            // todo
         }
     }
 
     export class ElevatorControl {
+        private elevators: Elevator[] = [];
         init(elevators: IElevator[], floors: IFloor[]) {
-            var nfloors = floors.length;
-            var mfloor = Math.floor(nfloors / 2);
-            var elevator = elevators[0]; // Let's use the first elevator
-            elevator.on("idle", () => {
-                elevator.goToFloor(mfloor);
+            elevators.forEach((elevator: IElevator) => {
+                this.elevators.push(new Elevator(elevator, floors));
             });
-
-            elevator.on("floor_button_pressed", (num: number) => {
-                if (elevator.destinationQueue.indexOf(num) === -1)
-                    elevator.goToFloor(num);
-            });
+            // FIXME
             floors.forEach((floor, i) => {
-                var foo = () => { elevator.goToFloor(i); };
+                var foo = () => this.elevators.forEach((elevator) => elevator.goToFloor(i));
                 floor.on("up_button_pressed", foo);
                 floor.on("down_button_pressed", foo);
             });
