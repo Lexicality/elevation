@@ -36,6 +36,15 @@ var Elevation;
             elevator.on("passing_floor", this.onPassFloor.bind(this));
             elevator.on("stopped_at_floor", this.onArrive.bind(this));
         }
+        Object.defineProperty(Elevator.prototype, "floor", {
+            // The last floor the elevator went past. If stationary, the floor we're at.
+            get: function () {
+                return this.elevator.currentFloor();
+            },
+            enumerable: true,
+            configurable: true
+        });
+
         Elevator.prototype.goToFloor = function (floor, override) {
             if (typeof override === "undefined") { override = false; }
             if (this.idle)
@@ -74,12 +83,13 @@ var Elevation;
         Elevator.prototype.onPassFloor = function (floor, _direction) {
             console.log("Passing floor %d going %s", floor, _direction);
             var direction = todir(_direction);
-            this.floor = floor;
+            //this.floor = floor;
             // TODO
         };
         Elevator.prototype.onArrive = function (floor) {
             console.log("Arrived at floor %s", floor);
-            this.floor = floor;
+
+            //this.floor = floor;
             if (this.elevator.destinationQueue.length > 0) {
                 this.destination = this.elevator.destinationQueue[0];
                 this.setDestination(this.destination);

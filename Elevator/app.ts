@@ -57,7 +57,9 @@ module Elevation {
 
         public direction: Direction;
         // The last floor the elevator went past. If stationary, the floor we're at.
-        public floor: number;
+        get floor(): number {
+            return this.elevator.currentFloor();
+        }
         // Where we're going to next
         public destination: number;
 
@@ -107,12 +109,12 @@ module Elevation {
         private onPassFloor(floor: number, _direction: string) {
             console.log("Passing floor %d going %s", floor, _direction);
             var direction = todir(_direction);
-            this.floor = floor;
+            //this.floor = floor;
             // TODO
         }
         private onArrive(floor: number) {
             console.log("Arrived at floor %s", floor);
-            this.floor = floor;
+            //this.floor = floor;
             if (this.elevator.destinationQueue.length > 0) {
                 this.destination = this.elevator.destinationQueue[0];
                 this.setDestination(this.destination);
