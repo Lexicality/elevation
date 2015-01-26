@@ -78,19 +78,71 @@ module Elevation {
                 override = true;
             if (!override && this.elevator.destinationQueue.indexOf(floor) !== -1)
                 return;
-            // TODO
-            console.log("Going to %d%s", floor, override ? ' directly' : '');
             if (override || this.elevator.destinationQueue.length == 0) {
                 this.setDestination(floor);
+                console.warn("Going to %d directly", floor);
+                this.elevator.goToFloor(floor, true);
+            } else {
+                console.info("Inserting %d into the queue", floor);
+                this.elevator.destinationQueue.push(floor);
+                if (this.direction == Direction.Up)
+                    this.elevator.destinationQueue.sort(this.sortUp.bind(this));
+                else
+                    this.elevator.destinationQueue.sort(this.sortDown.bind(this));
+                this.elevator.checkDestinationQueue();
+                console.info("Destination queue is now: %o", this.elevator.destinationQueue);
+                this.setDestination(this.elevator.destinationQueue[0]);
             }
-            this.elevator.goToFloor(floor, override);
             this.idle = false;
         }
+        requestGoingUp(floor: number) {
+            console.info("Request to go up to floor %d!", floor);
+            this.goToFloor(floor);
+        }
+        requestGoingDown(floor: number) {
+            console.info("Request to go down to floor %d!", floor);
+            this.goToFloor(floor);
+        }
 
-        private setDestination(floor: number) {
+        private setDestination(floor: number): void {
+            if (floor == this.floor)
+                this.direction = Direction.Resting;
+            else if (floor > this.floor)
+                this.direction = Direction.Up;
+            else
+                this.direction = Direction.Down;
             var e = this.elevator
-            e.goingDownIndicator(floor < this.floor);
-            e.goingUpIndicator(floor > this.floor);
+            // Indicators turned off due to passengers
+            //e.goingDownIndicator(this.direction == Direction.Down);
+            //e.goingUpIndicator(this.direction == Direction.Up);
+            this.destination = floor;
+            console.info("Destination is now %d, we are at %d. We are going %s!", floor, this.floor, dirto(this.direction));
+        }
+
+        private sortUp(a: number, b: number): number {
+            var f = this.floor;
+            if (a < f) {
+                if (b > f)
+                    return 1;
+                if (b > a)
+                    return 1;
+                return -1;
+            } else if (a < b) {
+                return -1;
+            }
+            return 1;
+        }
+        private sortDown(a: number, b: number): number {
+            var f = this.floor;
+            if (b > f) {
+                if (a < f)
+                    return -1;
+                if (a < b)
+                    return -1;
+            } else if (a > b) {
+                return -1;
+            }
+            return 1;
         }
 
         private onIdle() {
@@ -101,7 +153,7 @@ module Elevation {
             }
         }
         private onFloorRequest(floor: number) {
-            console.log("Floor req for %d", floor);
+            console.info("Internal floor req for %d", floor);
             // TODO
             this.goToFloor(floor);
         }
@@ -131,9 +183,8 @@ module Elevation {
             });
             // FIXME
             floors.forEach((floor, i) => {
-                var foo = () => this.elevators.forEach((elevator) => elevator.goToFloor(i));
-                floor.on("up_button_pressed", foo);
-                floor.on("down_button_pressed", foo);
+                floor.on("up_button_pressed", () => this.elevators.forEach((elevator) => elevator.requestGoingUp(i)));
+                floor.on("down_button_pressed", () => this.elevators.forEach((elevator) => elevator.requestGoingDown(i)));
             });
         }
         update(dt: number, elevators: IElevator[], floors: IFloor[]) {

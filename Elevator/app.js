@@ -55,20 +55,72 @@ var Elevation;
                 override = true;
             if (!override && this.elevator.destinationQueue.indexOf(floor) !== -1)
                 return;
-
-            // TODO
-            console.log("Going to %d%s", floor, override ? ' directly' : '');
             if (override || this.elevator.destinationQueue.length == 0) {
                 this.setDestination(floor);
+                console.warn("Going to %d directly", floor);
+                this.elevator.goToFloor(floor, true);
+            } else {
+                console.info("Inserting %d into the queue", floor);
+                this.elevator.destinationQueue.push(floor);
+                if (this.direction == 0 /* Up */)
+                    this.elevator.destinationQueue.sort(this.sortUp.bind(this));
+                else
+                    this.elevator.destinationQueue.sort(this.sortDown.bind(this));
+                this.elevator.checkDestinationQueue();
+                console.info("Destination queue is now: %o", this.elevator.destinationQueue);
+                this.setDestination(this.elevator.destinationQueue[0]);
             }
-            this.elevator.goToFloor(floor, override);
             this.idle = false;
+        };
+        Elevator.prototype.requestGoingUp = function (floor) {
+            console.info("Request to go up to floor %d!", floor);
+            this.goToFloor(floor);
+        };
+        Elevator.prototype.requestGoingDown = function (floor) {
+            console.info("Request to go down to floor %d!", floor);
+            this.goToFloor(floor);
         };
 
         Elevator.prototype.setDestination = function (floor) {
+            if (floor == this.floor)
+                this.direction = 1 /* Resting */;
+            else if (floor > this.floor)
+                this.direction = 0 /* Up */;
+            else
+                this.direction = 2 /* Down */;
             var e = this.elevator;
-            e.goingDownIndicator(floor < this.floor);
-            e.goingUpIndicator(floor > this.floor);
+
+            // Indicators turned off due to passengers
+            //e.goingDownIndicator(this.direction == Direction.Down);
+            //e.goingUpIndicator(this.direction == Direction.Up);
+            this.destination = floor;
+            console.info("Destination is now %d, we are at %d. We are going %s!", floor, this.floor, dirto(this.direction));
+        };
+
+        Elevator.prototype.sortUp = function (a, b) {
+            var f = this.floor;
+            if (a < f) {
+                if (b > f)
+                    return 1;
+                if (b > a)
+                    return 1;
+                return -1;
+            } else if (a < b) {
+                return -1;
+            }
+            return 1;
+        };
+        Elevator.prototype.sortDown = function (a, b) {
+            var f = this.floor;
+            if (b > f) {
+                if (a < f)
+                    return -1;
+                if (a < b)
+                    return -1;
+            } else if (a > b) {
+                return -1;
+            }
+            return 1;
         };
 
         Elevator.prototype.onIdle = function () {
@@ -79,7 +131,7 @@ var Elevation;
             }
         };
         Elevator.prototype.onFloorRequest = function (floor) {
-            console.log("Floor req for %d", floor);
+            console.info("Internal floor req for %d", floor);
 
             // TODO
             this.goToFloor(floor);
@@ -116,13 +168,16 @@ var Elevation;
 
             // FIXME
             floors.forEach(function (floor, i) {
-                var foo = function () {
+                floor.on("up_button_pressed", function () {
                     return _this.elevators.forEach(function (elevator) {
-                        return elevator.goToFloor(i);
+                        return elevator.requestGoingUp(i);
                     });
-                };
-                floor.on("up_button_pressed", foo);
-                floor.on("down_button_pressed", foo);
+                });
+                floor.on("down_button_pressed", function () {
+                    return _this.elevators.forEach(function (elevator) {
+                        return elevator.requestGoingDown(i);
+                    });
+                });
             });
         };
         ElevatorControl.prototype.update = function (dt, elevators, floors) {
