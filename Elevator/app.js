@@ -11,7 +11,18 @@ var Elevation;
     })(Elevation.Direction || (Elevation.Direction = {}));
     var Direction = Elevation.Direction;
     function todir(direction) {
+        if (direction == "up")
+            return 0 /* Up */;
+        else if (direction == "down")
+            return 2 /* Down */;
         return 1 /* Resting */;
+    }
+    function dirto(direction) {
+        if (direction == 0 /* Up */)
+            return "up";
+        else if (direction == 2 /* Down */)
+            return "down";
+        return "resting";
     }
     var Elevator = (function () {
         function Elevator(elevator, floors) {

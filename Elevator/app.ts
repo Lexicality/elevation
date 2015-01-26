@@ -38,7 +38,18 @@ module Elevation {
         Down,
     }
     function todir(direction: string): Direction {
+        if (direction == "up")
+            return Direction.Up;
+        else if (direction == "down")
+            return Direction.Down;
         return Direction.Resting;
+    }
+    function dirto(direction: Direction): string {
+        if (direction == Direction.Up)
+            return "up";
+        else if (direction == Direction.Down)
+            return "down";
+        return "resting";
     }
     class Elevator {
         private restingFloor: number;
