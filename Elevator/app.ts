@@ -47,6 +47,8 @@ module Elevation {
         public direction: Direction;
         // The last floor the elevator went past. If stationary, the floor we're at.
         public floor: number;
+        // Where we're going to next
+        public destination: number;
 
 
         constructor(private elevator: IElevator, floors: IFloor[]) {
@@ -66,15 +68,21 @@ module Elevation {
                 return;
             // TODO
             console.log("Going to %d%s", floor, override ? ' directly' : '');
+            if (override || this.elevator.destinationQueue.length == 0) {
+                this.setDestination(floor);
+            }
             this.elevator.goToFloor(floor, override);
             this.idle = false;
         }
 
+        private setDestination(floor: number) {
+            var e = this.elevator
+            e.goingDownIndicator(floor < this.floor);
+            e.goingUpIndicator(floor > this.floor);
+        }
+
         private onIdle() {
             console.info("Idle!");
-            var e = this.elevator
-            //e.goingDownIndicator(false);
-            //e.goingUpIndicator(false);
             if (!this.idle) {
                 this.goToFloor(this.restingFloor);
                 this.idle = true;
@@ -94,6 +102,11 @@ module Elevation {
         private onArrive(floor: number) {
             console.log("Arrived at floor %s", floor);
             this.floor = floor;
+            if (this.elevator.destinationQueue.length > 0) {
+                this.destination = this.elevator.destinationQueue[0];
+                this.setDestination(this.destination);
+                // todo
+            }
             // todo
         }
     }

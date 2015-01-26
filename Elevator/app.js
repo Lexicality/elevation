@@ -34,16 +34,21 @@ var Elevation;
 
             // TODO
             console.log("Going to %d%s", floor, override ? ' directly' : '');
+            if (override || this.elevator.destinationQueue.length == 0) {
+                this.setDestination(floor);
+            }
             this.elevator.goToFloor(floor, override);
             this.idle = false;
         };
 
+        Elevator.prototype.setDestination = function (floor) {
+            var e = this.elevator;
+            e.goingDownIndicator(floor < this.floor);
+            e.goingUpIndicator(floor > this.floor);
+        };
+
         Elevator.prototype.onIdle = function () {
             console.info("Idle!");
-            var e = this.elevator;
-
-            //e.goingDownIndicator(false);
-            //e.goingUpIndicator(false);
             if (!this.idle) {
                 this.goToFloor(this.restingFloor);
                 this.idle = true;
@@ -64,6 +69,11 @@ var Elevation;
         Elevator.prototype.onArrive = function (floor) {
             console.log("Arrived at floor %s", floor);
             this.floor = floor;
+            if (this.elevator.destinationQueue.length > 0) {
+                this.destination = this.elevator.destinationQueue[0];
+                this.setDestination(this.destination);
+                // todo
+            }
             // todo
         };
         return Elevator;
