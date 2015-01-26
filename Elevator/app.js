@@ -27,6 +27,10 @@ var Elevation;
     var Elevator = (function () {
         function Elevator(elevator, floors) {
             this.elevator = elevator;
+            this.idle = false;
+            this.direction = 1 /* Resting */;
+            // Where we're going to next
+            this.destination = -1;
             // This assumes floor[0] = 0 and floor[n] = n
             var nfloors = floors.length;
             this.restingFloor = Math.floor(nfloors / 2);

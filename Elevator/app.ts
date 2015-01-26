@@ -53,16 +53,15 @@ module Elevation {
     }
     class Elevator {
         private restingFloor: number;
-        private idle: boolean;
+        private idle: boolean = false;
 
-        public direction: Direction;
+        public direction: Direction = Direction.Resting;
         // The last floor the elevator went past. If stationary, the floor we're at.
         get floor(): number {
             return this.elevator.currentFloor();
         }
         // Where we're going to next
-        public destination: number;
-
+        public destination: number = -1;
 
         constructor(private elevator: IElevator, floors: IFloor[]) {
             // This assumes floor[0] = 0 and floor[n] = n
