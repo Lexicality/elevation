@@ -28,9 +28,6 @@ interface IFloor {
     on(event: string, cback: Function): void;
 }
 
-// Dummy IEFE due to reasons. Delete the first (
-(() => { })();
-
 module Elevation {
     export enum Direction {
         Up,
@@ -195,4 +192,3 @@ module Elevation {
 
 var test: Elevation.ElevatorControl;
 test = new Elevation.ElevatorControl();
-// Delete the last )
