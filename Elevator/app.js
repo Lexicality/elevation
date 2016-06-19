@@ -1,9 +1,9 @@
 var Elevation;
 (function (Elevation) {
     (function (Direction) {
-        Direction[Direction["Up"] = 0] = "Up";
-        Direction[Direction["Resting"] = 1] = "Resting";
-        Direction[Direction["Down"] = 2] = "Down";
+        Direction[Direction["Up"] = 1] = "Up";
+        Direction[Direction["Resting"] = 0] = "Resting";
+        Direction[Direction["Down"] = -1] = "Down";
     })(Elevation.Direction || (Elevation.Direction = {}));
     var Direction = Elevation.Direction;
     function todir(direction) {

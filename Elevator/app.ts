@@ -30,9 +30,9 @@ interface IFloor {
 
 module Elevation {
     export enum Direction {
-        Up,
-        Resting,
-        Down,
+        Up = 1,
+        Resting = 0,
+        Down = -1,
     }
     function todir(direction: string): Direction {
         if (direction == "up")
