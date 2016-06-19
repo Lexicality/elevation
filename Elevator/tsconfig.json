@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "module": "none",
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": false,
+        "noImplicitReturns": true,
+        "sourceMap": false,
+        "emitBOM": false,
+        "target": "es6"
+    },
+    "compileOnSave": true,
+    "files": [
+        "app.ts"
+    ]
+}
