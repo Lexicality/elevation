@@ -1,1 +1,4 @@
 * text=auto
+
+# Hide the built file from github
+build/** linguist-generated

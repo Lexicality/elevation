@@ -1,11 +1,11 @@
 var Elevation;
 (function (Elevation) {
+    let Direction;
     (function (Direction) {
         Direction[Direction["Up"] = 1] = "Up";
         Direction[Direction["Resting"] = 0] = "Resting";
         Direction[Direction["Down"] = -1] = "Down";
-    })(Elevation.Direction || (Elevation.Direction = {}));
-    var Direction = Elevation.Direction;
+    })(Direction = Elevation.Direction || (Elevation.Direction = {}));
     function todir(direction) {
         if (direction == "up")
             return Direction.Up;
@@ -135,6 +135,7 @@ var Elevation;
             if (this.elevator.destinationQueue.length > 0) {
                 this.destination = this.elevator.destinationQueue[0];
                 this.setDestination(this.destination);
+                // todo
             }
             // todo
         }

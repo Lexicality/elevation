@@ -6,10 +6,11 @@
         "noImplicitReturns": true,
         "sourceMap": false,
         "emitBOM": false,
-        "target": "es6"
+        "target": "es6",
+        "outFile": "build/app.js"
     },
     "compileOnSave": true,
     "files": [
-        "app.ts"
+        "src/app.ts"
     ]
 }

@@ -1,0 +1,19 @@
+{
+  "name": "elevation",
+  "version": "1.0.0",
+  "description": "going too far for the elevator saga ",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^4.5.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lexicality/elevation.git"
+  },
+  "author": "Lexi Robinson",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Lexicality/elevation/issues"
+  },
+  "homepage": "https://github.com/Lexicality/elevation#readme"
+}
