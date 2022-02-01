@@ -35,17 +35,13 @@ module Elevation {
         Down = -1,
     }
     function todir(direction: string): Direction {
-        if (direction == "up")
-            return Direction.Up;
-        else if (direction == "down")
-            return Direction.Down;
+        if (direction == "up") return Direction.Up;
+        else if (direction == "down") return Direction.Down;
         return Direction.Resting;
     }
     function dirto(direction: Direction): string {
-        if (direction == Direction.Up)
-            return "up";
-        else if (direction == Direction.Down)
-            return "down";
+        if (direction == Direction.Up) return "up";
+        else if (direction == Direction.Down) return "down";
         return "resting";
     }
     class Elevator {
@@ -71,9 +67,11 @@ module Elevation {
             elevator.on("stopped_at_floor", this.onArrive.bind(this));
         }
         goToFloor(floor: number, override: boolean = false): void {
-            if (this.idle)
-                override = true;
-            if (!override && this.elevator.destinationQueue.indexOf(floor) !== -1)
+            if (this.idle) override = true;
+            if (
+                !override &&
+                this.elevator.destinationQueue.indexOf(floor) !== -1
+            )
                 return;
             if (override || this.elevator.destinationQueue.length == 0) {
                 this.setDestination(floor);
@@ -85,9 +83,14 @@ module Elevation {
                 if (this.direction == Direction.Up)
                     this.elevator.destinationQueue.sort(this.sortUp.bind(this));
                 else
-                    this.elevator.destinationQueue.sort(this.sortDown.bind(this));
+                    this.elevator.destinationQueue.sort(
+                        this.sortDown.bind(this),
+                    );
                 this.elevator.checkDestinationQueue();
-                console.info("Destination queue is now: %o", this.elevator.destinationQueue);
+                console.info(
+                    "Destination queue is now: %o",
+                    this.elevator.destinationQueue,
+                );
                 this.setDestination(this.elevator.destinationQueue[0]);
             }
             this.idle = false;
@@ -102,27 +105,27 @@ module Elevation {
         }
 
         private setDestination(floor: number): void {
-            if (floor == this.floor)
-                this.direction = Direction.Resting;
-            else if (floor > this.floor)
-                this.direction = Direction.Up;
-            else
-                this.direction = Direction.Down;
-            var e = this.elevator
+            if (floor == this.floor) this.direction = Direction.Resting;
+            else if (floor > this.floor) this.direction = Direction.Up;
+            else this.direction = Direction.Down;
+            var e = this.elevator;
             // Indicators turned off due to passengers
             //e.goingDownIndicator(this.direction == Direction.Down);
             //e.goingUpIndicator(this.direction == Direction.Up);
             this.destination = floor;
-            console.info("Destination is now %d, we are at %d. We are going %s!", floor, this.floor, dirto(this.direction));
+            console.info(
+                "Destination is now %d, we are at %d. We are going %s!",
+                floor,
+                this.floor,
+                dirto(this.direction),
+            );
         }
 
         private sortUp(a: number, b: number): number {
             var f = this.floor;
             if (a < f) {
-                if (b > f)
-                    return 1;
-                if (b > a)
-                    return 1;
+                if (b > f) return 1;
+                if (b > a) return 1;
                 return -1;
             } else if (a < b) {
                 return -1;
@@ -132,10 +135,8 @@ module Elevation {
         private sortDown(a: number, b: number): number {
             var f = this.floor;
             if (b > f) {
-                if (a < f)
-                    return -1;
-                if (a < b)
-                    return -1;
+                if (a < f) return -1;
+                if (a < b) return -1;
             } else if (a > b) {
                 return -1;
             }
@@ -180,8 +181,16 @@ module Elevation {
             });
             // FIXME
             floors.forEach((floor, i) => {
-                floor.on("up_button_pressed", () => this.elevators.forEach((elevator) => elevator.requestGoingUp(i)));
-                floor.on("down_button_pressed", () => this.elevators.forEach((elevator) => elevator.requestGoingDown(i)));
+                floor.on("up_button_pressed", () =>
+                    this.elevators.forEach((elevator) =>
+                        elevator.requestGoingUp(i),
+                    ),
+                );
+                floor.on("down_button_pressed", () =>
+                    this.elevators.forEach((elevator) =>
+                        elevator.requestGoingDown(i),
+                    ),
+                );
             });
         }
         update(dt: number, elevators: IElevator[], floors: IFloor[]) {
