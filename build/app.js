@@ -1,32 +1,12 @@
-var Direction;
-(function (Direction) {
-    Direction[Direction["Up"] = 1] = "Up";
-    Direction[Direction["Resting"] = 0] = "Resting";
-    Direction[Direction["Down"] = -1] = "Down";
-})(Direction || (Direction = {}));
-function todir(direction) {
-    if (direction == "up")
-        return Direction.Up;
-    else if (direction == "down")
-        return Direction.Down;
-    return Direction.Resting;
-}
-function dirto(direction) {
-    if (direction == Direction.Up)
-        return "up";
-    else if (direction == Direction.Down)
-        return "down";
-    return "resting";
-}
 class Elevator {
     constructor(elevator, floors) {
         this.elevator = elevator;
         this.idle = false;
-        this.direction = Direction.Resting;
+        this.direction = "stopped" /* Stopped */;
         // Where we're going to next
         this.destination = -1;
         // This assumes floor[0] = 0 and floor[n] = n
-        var nfloors = floors.length;
+        let nfloors = floors.length;
         this.restingFloor = Math.floor(nfloors / 2);
         elevator.on("idle", this.onIdle.bind(this));
         elevator.on("floor_button_pressed", this.onFloorRequest.bind(this));
@@ -50,7 +30,7 @@ class Elevator {
         else {
             console.info("Inserting %d into the queue", floor);
             this.elevator.destinationQueue.push(floor);
-            if (this.direction == Direction.Up)
+            if (this.direction == "up" /* Up */)
                 this.elevator.destinationQueue.sort(this.sortUp.bind(this));
             else
                 this.elevator.destinationQueue.sort(this.sortDown.bind(this));
@@ -70,20 +50,20 @@ class Elevator {
     }
     setDestination(floor) {
         if (floor == this.floor)
-            this.direction = Direction.Resting;
+            this.direction = "stopped" /* Stopped */;
         else if (floor > this.floor)
-            this.direction = Direction.Up;
+            this.direction = "up" /* Up */;
         else
-            this.direction = Direction.Down;
-        var e = this.elevator;
+            this.direction = "down" /* Down */;
+        let e = this.elevator;
         // Indicators turned off due to passengers
         //e.goingDownIndicator(this.direction == Direction.Down);
         //e.goingUpIndicator(this.direction == Direction.Up);
         this.destination = floor;
-        console.info("Destination is now %d, we are at %d. We are going %s!", floor, this.floor, dirto(this.direction));
+        console.info("Destination is now %d, we are at %d. We are going %s!", floor, this.floor, this.direction);
     }
     sortUp(a, b) {
-        var f = this.floor;
+        let f = this.floor;
         if (a < f) {
             if (b > f)
                 return 1;
@@ -97,7 +77,7 @@ class Elevator {
         return 1;
     }
     sortDown(a, b) {
-        var f = this.floor;
+        let f = this.floor;
         if (b > f) {
             if (a < f)
                 return -1;
@@ -123,7 +103,6 @@ class Elevator {
     }
     onPassFloor(floor, _direction) {
         console.log("Passing floor %d going %s", floor, _direction);
-        var direction = todir(_direction);
         //this.floor = floor;
         // TODO
     }
@@ -156,5 +135,5 @@ class ElevatorControl {
         // We normally don't need to do anything heree
     }
 }
-var test;
+let test;
 test = new ElevatorControl();
