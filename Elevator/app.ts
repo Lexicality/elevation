@@ -1,4 +1,4 @@
-﻿interface IElevator {
+interface IElevator {
     // Queue the elevator to go to specified floor number. If you specify true as second argument, the elevator will go to that floor directly, and then go to any other queued floors.
     goToFloor(floor: number): void;
     goToFloor(floor: number, directly: boolean): void;
