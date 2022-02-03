@@ -7,6 +7,7 @@
         "sourceMap": false,
         "emitBOM": false,
         "target": "es6",
+        "removeComments": true,
         "outFile": "build/app.js"
     },
     "compileOnSave": true,

@@ -149,129 +149,189 @@ interface IFloor extends EventEmitter<FloorEvents> {
 }
 
 class Elevator {
-    private restingFloor: number;
-    private idle = false;
+    // private restingFloor: number;
 
     public direction: Direction = Direction.Stopped;
+
     // The last floor the elevator went past. If stationary, the floor we're at.
     get floor(): number {
         return this.elevator.currentFloor();
     }
-    // Where we're going to next
-    public destination = -1;
 
-    constructor(private elevator: IElevator, floors: IFloor[]) {
+    get realDirection(): Direction {
+        return this.elevator.destinationDirection();
+    }
+
+    private upQueue = new Set<number>();
+    private downQueue = new Set<number>();
+    private activeQueue = new Set<number>();
+
+    constructor(private elevator: IElevator, _floors: IFloor[]) {
         // This assumes floor[0] = 0 and floor[n] = n
-        let nfloors = floors.length;
-        this.restingFloor = Math.floor(nfloors / 2);
+        // let nfloors = floors.length;
+        // this.restingFloor = Math.floor(nfloors / 2);
 
         elevator.on("idle", this.onIdle.bind(this));
         elevator.on("floor_button_pressed", this.onFloorRequest.bind(this));
         elevator.on("passing_floor", this.onPassFloor.bind(this));
         elevator.on("stopped_at_floor", this.onArrive.bind(this));
     }
-    goToFloor(floor: number, override = false): void {
-        if (this.idle) override = true;
-        if (!override && this.elevator.destinationQueue.indexOf(floor) !== -1)
-            return;
-        if (override || this.elevator.destinationQueue.length == 0) {
-            this.setDestination(floor);
-            console.warn("Going to %d directly", floor);
-            this.elevator.goToFloor(floor, true);
+
+    private lights() {
+        this.elevator.goingDownIndicator(this.direction == Direction.Down);
+        this.elevator.goingUpIndicator(this.direction == Direction.Up);
+    }
+
+    private updateQueue() {
+        if (this.direction == Direction.Up) {
+            this.elevator.destinationQueue.sort((a, b) => a - b);
         } else {
-            console.info("Inserting %d into the queue", floor);
-            this.elevator.destinationQueue.push(floor);
-            if (this.direction == Direction.Up)
-                this.elevator.destinationQueue.sort(this.sortUp.bind(this));
-            else this.elevator.destinationQueue.sort(this.sortDown.bind(this));
-            this.elevator.checkDestinationQueue();
-            console.info(
-                "Destination queue is now: %o",
-                this.elevator.destinationQueue,
-            );
-            this.setDestination(this.elevator.destinationQueue[0]);
+            this.elevator.destinationQueue.sort((a, b) => b - a);
         }
-        this.idle = false;
+        this.elevator.checkDestinationQueue();
     }
+
+    goToFloor(floor: number) {
+        console.info("GOTO (%s %d): %d", this.direction, this.floor, floor);
+        if (this.direction != Direction.Stopped) {
+            throw new Error("You should be stopped when calling this!!");
+        }
+        if (floor == this.floor) {
+            // ??
+            console.error("asked to go to the floor we're currently on?");
+        }
+        this.elevator.goToFloor(floor);
+    }
+
     requestGoingUp(floor: number) {
-        console.info("Request to go up to floor %d!", floor);
-        this.goToFloor(floor);
+        console.info("REQ UP (%s %d): %d", this.direction, this.floor, floor);
+        let dir = this.direction;
+        if (dir == Direction.Stopped) {
+            console.log("not moving, serving directly");
+            this.goToFloor(floor);
+            this.direction = Direction.Up;
+            this.lights();
+        } else if (dir == Direction.Down) {
+            console.log("we're going in the other direction, ignoring");
+            this.upQueue.add(floor);
+        } else if (floor <= this.floor) {
+            console.log("that's a request for below us, ignoring for now");
+            this.upQueue.add(floor);
+        } else if (this.activeQueue.has(floor)) {
+            console.log("already going there!");
+        } else {
+            console.log("adding to queue");
+            this.elevator.destinationQueue.push(floor);
+            this.updateQueue();
+        }
     }
+
     requestGoingDown(floor: number) {
-        console.info("Request to go down to floor %d!", floor);
-        this.goToFloor(floor);
-    }
-
-    private setDestination(floor: number): void {
-        if (floor == this.floor) this.direction = Direction.Stopped;
-        else if (floor > this.floor) this.direction = Direction.Up;
-        else this.direction = Direction.Down;
-        let e = this.elevator;
-        // Indicators turned off due to passengers
-        //e.goingDownIndicator(this.direction == Direction.Down);
-        //e.goingUpIndicator(this.direction == Direction.Up);
-        this.destination = floor;
-        console.info(
-            "Destination is now %d, we are at %d. We are going %s!",
-            floor,
-            this.floor,
-            this.direction,
-        );
-    }
-
-    private sortUp(a: number, b: number): number {
-        let f = this.floor;
-        if (a < f) {
-            if (b > f) return 1;
-            if (b > a) return 1;
-            return -1;
-        } else if (a < b) {
-            return -1;
+        console.info("REQ DOWN (%s %d): %d", this.direction, this.floor, floor);
+        let dir = this.direction;
+        if (dir == Direction.Stopped) {
+            console.log("not moving, serving directly");
+            this.goToFloor(floor);
+            this.direction = Direction.Down;
+            this.lights();
+        } else if (dir == Direction.Up) {
+            console.log("we're going in the other direction, ignoring");
+            this.downQueue.add(floor);
+        } else if (floor >= this.floor) {
+            console.log("that's a request for above us, ignoring for now");
+            this.downQueue.add(floor);
+        } else if (this.activeQueue.has(floor)) {
+            console.log("already going there!");
+        } else {
+            console.log("adding to queue");
+            this.elevator.destinationQueue.push(floor);
+            this.updateQueue();
         }
-        return 1;
-    }
-    private sortDown(a: number, b: number): number {
-        let f = this.floor;
-        if (b > f) {
-            if (a < f) return -1;
-            if (a < b) return -1;
-        } else if (a > b) {
-            return -1;
-        }
-        return 1;
     }
 
     private onIdle() {
-        console.info("Idle!");
-        if (!this.idle) {
-            this.goToFloor(this.restingFloor);
-            this.idle = true;
+        console.info("IDLE (%s %d)", this.direction, this.floor);
+        let dir = this.direction;
+        if (dir == Direction.Up && this.downQueue.size > 0) {
+            this.activeQueue = new Set(this.downQueue);
+            this.elevator.destinationQueue = Array.from(this.downQueue);
+            this.downQueue = new Set();
+            this.direction = Direction.Down;
+            this.updateQueue();
+        } else if (dir == Direction.Down && this.upQueue.size > 0) {
+            this.activeQueue = new Set(this.upQueue);
+            this.elevator.destinationQueue = Array.from(this.upQueue);
+            this.upQueue = new Set();
+            this.direction = Direction.Up;
+            this.updateQueue();
+        } else if (this.downQueue.size > 0) {
+            this.activeQueue = new Set(this.downQueue);
+            this.elevator.destinationQueue = Array.from(this.downQueue);
+            this.downQueue = new Set();
+            this.direction = Direction.Down;
+            this.updateQueue();
+        } else if (this.upQueue.size > 0) {
+            this.activeQueue = new Set(this.upQueue);
+            this.elevator.destinationQueue = Array.from(this.upQueue);
+            this.upQueue = new Set();
+            this.direction = Direction.Up;
+            this.updateQueue();
+        } else {
+            this.direction = Direction.Stopped;
         }
+        this.lights();
+        console.log("Was going %s, going to go %s now", dir, this.direction);
+        console.dir(this.elevator.destinationQueue);
     }
+
     private onFloorRequest(floor: number) {
-        console.info("Internal floor req for %d", floor);
-        // TODO
-        this.goToFloor(floor);
-    }
-    private onPassFloor(floor: number, _direction: MovingDirection) {
-        console.log("Passing floor %d going %s", floor, _direction);
-        //this.floor = floor;
-        // TODO
-    }
-    private onArrive(floor: number) {
-        console.log("Arrived at floor %s", floor);
-        //this.floor = floor;
-        if (this.elevator.destinationQueue.length > 0) {
-            this.destination = this.elevator.destinationQueue[0];
-            this.setDestination(this.destination);
-            // todo
+        console.info("INT REQ (%s %d): %d", this.direction, this.floor, floor);
+        let curFloor = this.floor;
+        if (floor < curFloor) {
+            console.log("request for below, treating as a down req");
+            this.requestGoingDown(floor);
+            return;
+        } else if (floor > curFloor) {
+            console.log("request for above, treating as an up req");
+            this.requestGoingUp(floor);
+            return;
         }
-        // todo
+        console.warn("request for current floor");
+        // Not entirely sure about this one
+        let dir = this.direction;
+        if (dir == Direction.Stopped) {
+            console.warn("?? not moving");
+            this.goToFloor(floor);
+        } else if (dir == Direction.Up) {
+            console.log(
+                "?? can't stop at this floor any more, treating as down",
+            );
+            this.requestGoingDown(floor);
+        } else {
+            console.log("?? can't stop at this floor any more, treating as up");
+            this.requestGoingUp(floor);
+        }
+    }
+
+    private onPassFloor(floor: number, direction: MovingDirection) {
+        console.info(
+            "PASS (%s %d): %d %s",
+            this.direction,
+            this.floor,
+            floor,
+            direction,
+        );
+    }
+
+    private onArrive(floor: number) {
+        console.log("ARRIVE (%s %d): %d", this.direction, this.floor, floor);
+        this.activeQueue.delete(floor);
     }
 }
 
 class ElevatorControl {
     private elevators: Elevator[] = [];
+
     init(elevators: IElevator[], floors: IFloor[]) {
         elevators.forEach((elevator: IElevator) => {
             this.elevators.push(new Elevator(elevator, floors));
@@ -290,10 +350,14 @@ class ElevatorControl {
             );
         });
     }
-    update(dt: number, elevators: IElevator[], floors: IFloor[]) {
-        // We normally don't need to do anything heree
+
+    update(_dt: number, _elevators: IElevator[], _floors: IFloor[]) {
+        // We normally don't need to do anything here
     }
 }
 
+// I don't entirely understand why it works, but in order to function correctly
+// when eval'd the we need to define this on two lines
 let test: ElevatorControl;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 test = new ElevatorControl();
