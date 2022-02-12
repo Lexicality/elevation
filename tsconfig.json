@@ -1,17 +1,19 @@
 {
     "compilerOptions": {
-        "module": "none",
+        "module": "ES2015",
         "noFallthroughCasesInSwitch": true,
         "noImplicitAny": false,
         "noImplicitReturns": true,
         "sourceMap": false,
         "emitBOM": false,
-        "target": "es6",
+        "target": "ES2021",
         "removeComments": true,
-        "outFile": "build/app.js"
+        "moduleResolution": "node",
+        "strict": true
     },
     "compileOnSave": true,
-    "files": [
-        "src/app.ts"
+    "include": [
+        "src",
+        "rollup.config.ts"
     ]
 }
