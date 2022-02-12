@@ -141,9 +141,22 @@ interface FloorEvents {
     down_button_pressed: () => void;
 }
 
+export const enum ButtonState {
+    Active = "activated",
+    Inactive = "",
+}
+
 export interface IFloor extends EventEmitter<FloorEvents> {
     /**
      * Gets the floor number of the floor object.
      */
     floorNum(): number;
+
+    /**
+     * Secret interface
+     */
+    readonly buttonStates: {
+        up: ButtonState;
+        down: ButtonState;
+    };
 }
