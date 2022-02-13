@@ -35,3 +35,55 @@ export interface EventEmitter<Events extends EventManifest<Events>> {
         ...args: Parameters<Events[E]>
     ): this;
 }
+
+declare global {
+    namespace unobservable {
+        class CustomArray<T> {
+            arr: T[];
+            len: number;
+            constructor(numPreallocated: number);
+            push(e: T): void;
+            removeat(index: number): void;
+        }
+
+        function observable<Obj, Events extends EventManifest<Events> = {}>(
+            el: Obj,
+            options?: {
+                numPreallocatedHandlers?: number;
+                addDataMembers?: boolean;
+            },
+        ): Obj & EventEmitter<Events>;
+
+        function asObservable<Obj, Events extends EventManifest<Events> = {}>(
+            el: Obj,
+            options?: {
+                numPreallocatedHandlers?: number;
+                addDataMembers?: boolean;
+            },
+        ): Obj & EventEmitter<Events>;
+
+        class Observable<Events extends EventManifest<Events>>
+            implements EventEmitter<Events>
+        {
+            protected callbacks: {
+                [key in keyof Events]: CustomArray<Events[key]>;
+            };
+            on<E extends keyof Events>(event: E, cback: Events[E]): this;
+            one<E extends keyof Events>(event: E, cback: Events[E]): this;
+            off<E extends keyof Events>(event: E, cback: Events[E]): this;
+            off<E extends keyof Events>(event: E): this;
+            off(event: "*"): this;
+            off(event: "*", cback: (...args: any[]) => void): this;
+            trigger<E extends keyof Events>(
+                event: E,
+                ...args: Parameters<Events[E]>
+            ): this;
+        }
+    }
+
+    namespace riot {
+        function observable<Obj, Events extends EventManifest<Events> = {}>(
+            el: Obj,
+        ): Obj & EventEmitter<Events>;
+    }
+}

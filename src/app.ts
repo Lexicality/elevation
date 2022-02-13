@@ -1,7 +1,7 @@
 import { Direction, IElevator, MovingDirection } from "./types/elevator";
 import { IFloor } from "./types/floor";
 
-class Elevator {
+class Elevator extends unobservable.Observable<{}> {
     // private restingFloor: number;
 
     public direction: Direction = Direction.Stopped;
@@ -20,6 +20,7 @@ class Elevator {
     private activeQueue = new Set<number>();
 
     constructor(private elevator: IElevator, _floors: IFloor[]) {
+        super();
         // This assumes floor[0] = 0 and floor[n] = n
         // let nfloors = floors.length;
         // this.restingFloor = Math.floor(nfloors / 2);
