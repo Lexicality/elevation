@@ -1,4 +1,5 @@
-import { Direction, IElevator, IFloor, MovingDirection } from "./interface";
+import { Direction, IElevator, MovingDirection } from "./types/elevator";
+import { IFloor } from "./types/floor";
 
 class Elevator {
     // private restingFloor: number;

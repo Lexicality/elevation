@@ -1,47 +1,11 @@
+import type { EventEmitter } from "./event-emitter";
+
 export const enum Direction {
     Up = "up",
     Stopped = "stopped",
     Down = "down",
 }
 export type MovingDirection = Direction.Up | Direction.Down;
-
-type EventManifest<L> = {
-    [E in keyof L]: (...args: any[]) => void;
-};
-
-interface EventEmitter<Events extends EventManifest<Events>> {
-    /**
-     * Listen to the given event and execute the callback each time an event is triggered.
-     */
-    on<E extends keyof Events>(event: E, cback: Events[E]): this;
-    /**
-     * Listen to the given event and execute the callback at most once
-     */
-    one<E extends keyof Events>(event: E, cback: Events[E]): this;
-    /**
-     * Removes the given callback listening to the event
-     */
-    off<E extends keyof Events>(event: E, cback: Events[E]): this;
-    /**
-     * Removes the given event listeners.
-     */
-    off<E extends keyof Events>(event: E): this;
-    /**
-     * Removes all listeners from all event types.
-     */
-    off(event: "*"): this;
-    /**
-     * Removes the specific callback function called on all the events
-     */
-    off(event: "*", cback: (...args: any[]) => void): this;
-    /**
-     * Execute all callback functions that listen to the given event.
-     */
-    trigger<E extends keyof Events>(
-        event: E,
-        ...args: Parameters<Events[E]>
-    ): this;
-}
 
 interface ElevatorEvents {
     /**
@@ -126,37 +90,4 @@ export interface IElevator extends EventEmitter<ElevatorEvents> {
      * Gets the currently pressed floor numbers as an array.
      */
     getPressedFloors(): number[];
-}
-
-interface FloorEvents {
-    /**
-     * Triggered when someone has pressed the up button at a floor. Note that
-     * passengers will press the button again if they fail to enter an elevator.
-     */
-    up_button_pressed: () => void;
-    /**
-     * Triggered when someone has pressed the down button at a floor. Note that
-     * passengers will press the button again if they fail to enter an elevator.
-     */
-    down_button_pressed: () => void;
-}
-
-export const enum ButtonState {
-    Active = "activated",
-    Inactive = "",
-}
-
-export interface IFloor extends EventEmitter<FloorEvents> {
-    /**
-     * Gets the floor number of the floor object.
-     */
-    floorNum(): number;
-
-    /**
-     * Secret interface
-     */
-    readonly buttonStates: {
-        up: ButtonState;
-        down: ButtonState;
-    };
 }
