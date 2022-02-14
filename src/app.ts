@@ -1,7 +1,8 @@
+import { Observable } from "unobservable";
 import { Direction, IElevator, MovingDirection } from "./types/elevator";
 import { IFloor } from "./types/floor";
 
-class Elevator extends unobservable.Observable<{}> {
+class Elevator extends Observable<{}> {
     // private restingFloor: number;
 
     public direction: Direction = Direction.Stopped;

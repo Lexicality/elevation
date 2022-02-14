@@ -1,4 +1,4 @@
-import type { EventEmitter } from "./event-emitter";
+import type { EventEmitter } from "unobservable";
 
 export const enum Direction {
     Up = "up",

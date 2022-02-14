@@ -10,6 +10,10 @@ let config: RollupOptions = {
         format: "iife",
         // We cannot specify a name or it'll make the game upset
         name: undefined,
+        // hackery
+        globals: {
+            unobservable: "unobservable",
+        },
     },
     plugins: [
         typescript(),
